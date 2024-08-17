@@ -1,11 +1,12 @@
 # letterboxd2notion
 
-Sync your Letterboxd account to a Notion database!
+Sync your Letterboxd reviews to a Notion database!
 
-## Instructions
+## Usage
 
 - Get a token for Notion at [here](https://notion.so/my-integrations)
-- Set up a database that copies my fields and get its ID
+- Set up a database with the following fields: title (text), rating (text), year (text), movie URL (URL)
+- Grab its ID (i.e., the first UUID in the URL)
 - Get an API key from [TheMovieDB](https://themoviedb.org)
-- Plug in everything
-- Run on Windows Task Scheduler or on a related service (use the `.bat` file for anything related to that)
+- Set up a `.env` following `.env.example`
+- Run on Windows Task Scheduler (use the `.bat` file) or on a related service (e.g., as a `cronjob`)

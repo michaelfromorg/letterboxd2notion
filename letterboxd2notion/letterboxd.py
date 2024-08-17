@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 from urllib.parse import quote
 
 import requests
@@ -129,7 +130,7 @@ def add_to_notion(movie: Movie) -> None:
         properties["Backdrop"] = {
             "files": [{"name": movie.title, "external": {"url": movie.backdrop}}]
         }
-    response = notion.databases.query(
+    response: Any = notion.databases.query(
         database_id=DATABASE_ID,
         filter={"property": "Title", "rich_text": {"equals": movie.title}},
     )
