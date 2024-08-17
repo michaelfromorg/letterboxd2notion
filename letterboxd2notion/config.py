@@ -20,4 +20,6 @@ TMDB_API_KEY = os.getenv("TMDB_API_KEY", "")
 if not TMDB_API_KEY:
     raise ValueError("Please add your TMDB_API_KEY to your .env file.")
 
-ALL_DATA = True
+# TODO(michaelfromyeg): implement; for now, it's OK since we don't import duplicates
+# get all data (true) or data after last sync (false)
+ALL_DATA = False
