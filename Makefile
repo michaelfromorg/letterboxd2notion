@@ -5,7 +5,7 @@ mypy:
 	@python -m mypy letterboxd2notion
 
 check:
-	@ruff check letterboxd2notion
+	@python -m ruff check letterboxd2notion
 
 format:
-	@ruff format letterboxd2notion
+	@python -m ruff format letterboxd2notion
