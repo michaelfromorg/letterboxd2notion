@@ -48,7 +48,7 @@ class Movie:
     backdrop: str
 
 
-def get_data(soup: BeautifulSoup):
+def get_data(soup: BeautifulSoup) -> list[Movie]:
     movies: list[Movie] = []
 
     for e in soup.select("tr.diary-entry-row"):
