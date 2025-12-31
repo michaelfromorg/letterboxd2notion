@@ -34,7 +34,17 @@ def scrape(url: str) -> BeautifulSoup:
     """
     Turn a URL into a BeautifulSoup object.
     """
-    response = requests.get(url)
+    import time
+
+    for attempt in range(5):
+        response = requests.get(url)
+        if response.status_code == 429:
+            wait_time = 30 * (attempt + 1)
+            print(f"Rate limited, waiting {wait_time}s...")
+            time.sleep(wait_time)
+            continue
+        response.raise_for_status()
+        return BeautifulSoup(response.content, "html.parser")
     response.raise_for_status()
     return BeautifulSoup(response.content, "html.parser")
 
@@ -60,35 +70,32 @@ def get_data(soup: BeautifulSoup) -> list[Movie]:
             continue
         rating = hide_for_owner.get_text().strip()
 
-        td_actions = e.find("td", class_="td-actions")
-        if not isinstance(td_actions, Tag):
+        # Get title and slug from col-production
+        col_production = e.find("td", class_="col-production")
+        if not isinstance(col_production, Tag):
             continue
-
-        title = td_actions.get("data-film-name")
-        if not isinstance(title, str):
+        title_link = col_production.find("a")
+        if not isinstance(title_link, Tag):
             continue
-
-        if e.find("div", class_="date"):
-            td_calendar = e.find("td", class_="td-calendar")
-            if td_calendar is None:
-                continue
-            small = td_calendar.find("small")
-            if not isinstance(small, Tag):
-                continue
-            year_str = small.get_text(strip=True)
-
-            date = e.find("div", class_="date")
-            if date is None:
-                continue
-            month_str = date.get_text()
-            month_str = month_str.strip().split(" ")[0]
-
-            year = MONTH_MAPPING[month_str] + " " + year_str
-
-        slug = td_actions.get("data-film-slug")
-        if not isinstance(slug, str):
+        title = title_link.get_text(strip=True)
+        href = title_link.get("href")
+        if not isinstance(href, str):
             continue
+        # Extract slug from href like /michaelfromyeg/film/SLUG/
+        slug = href.split("/film/")[-1].rstrip("/")
         movie_url = "https://letterboxd.com/film/" + slug
+
+        # Get watch date from col-monthdate
+        col_monthdate = e.find("td", class_="col-monthdate")
+        if not isinstance(col_monthdate, Tag):
+            continue
+        month_link = col_monthdate.find("a", class_="month")
+        year_link = col_monthdate.find("a", class_="year")
+        if not isinstance(month_link, Tag) or not isinstance(year_link, Tag):
+            continue
+        month_str = month_link.get_text(strip=True)
+        year_str = year_link.get_text(strip=True)
+        year = MONTH_MAPPING.get(month_str, month_str) + " " + year_str
 
         link = f"https://api.themoviedb.org/3/search/movie?query={quote(title)}&api_key={TMDB_API_KEY}"
 
@@ -98,11 +105,11 @@ def get_data(soup: BeautifulSoup) -> list[Movie]:
         if response.status_code == 200:
             response_json = response.json()
             if len(response_json["results"]) == 0:
-                print(f"No images found for {title}")
-                continue
-
-            backdrop_path = response_json["results"][0]["backdrop_path"]
-            backdrop = "https://image.tmdb.org/t/p/w500" + backdrop_path
+                print(f"No TMDB results for {title}")
+            else:
+                backdrop_path = response_json["results"][0].get("backdrop_path")
+                if backdrop_path:
+                    backdrop = "https://image.tmdb.org/t/p/w500" + backdrop_path
 
         movie = Movie(
             title=title,

@@ -1,5 +1,6 @@
 import io
 import sys
+import time
 
 from letterboxd2notion.config import LETTERBOXD_USERNAME
 from letterboxd2notion.letterboxd import Movie, add_to_notion, get_data, scrape
@@ -22,6 +23,7 @@ if __name__ == "__main__":
 
         movies.extend(data)
         page_num += 1
+        time.sleep(2)  # Avoid rate limiting
 
     movies.reverse()
     for movie in movies:
