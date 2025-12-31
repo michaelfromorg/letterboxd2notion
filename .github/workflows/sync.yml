@@ -1,0 +1,31 @@
+name: Sync Letterboxd to Notion
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Sync from RSS
+        run: uv run letterboxd2notion sync
+        env:
+          TOKEN_V3: ${{ secrets.TOKEN_V3 }}
+          DATABASE_ID: ${{ secrets.DATABASE_ID }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          LETTERBOXD_USERNAME: ${{ secrets.LETTERBOXD_USERNAME }}
